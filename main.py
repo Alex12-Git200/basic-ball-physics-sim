@@ -2,7 +2,8 @@ import pygame
 import time
 
 
-# TODO: Use the sky.jpg and add it as bg
+# INFO: I havent made to be able to bounce of the cube cause i will be working later on making in it movable and rotatable, if i can.
+# TODO: Fix bug that when i get ontop of the cuube, and then roll away, i am levitating
 
 pygame.init()
 
