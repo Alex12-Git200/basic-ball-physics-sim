@@ -6,16 +6,21 @@ import time
 
 pygame.init()
 
+# get screen info
+info = pygame.display.Info()
+screen_width = info.current_w
+screen_height = info.current_h
+
 font = pygame.font.SysFont("Consolas", 30)  
-screen = pygame.display.set_mode((1500, 1000))
+screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 FPS = 120
 pygame.display.set_caption(f"Basic Ball Physics Simulation")
 clock = pygame.time.Clock()
 
 bounce_sound = pygame.mixer.Sound("bounce.mp3")
 
-ground = pygame.Rect(0, 950, 1700, 200)
-button_rect = pygame.Rect(1250, 30, 200, 60)
+ground = pygame.Rect(0, 950, 5000, 700)
+button_rect = pygame.Rect(1700, 20, 200, 60)
 ball = pygame.Rect(450, 100, 50, 50)
 ball_pos_y = float(ball.y)
 Y_VELOCITY = 0
@@ -29,9 +34,11 @@ EOOLTCP = False                 # stands for exiting out of loop to close progra
 touchingGround = False
 has_played_bounce_sound = False
 
+# sky
+bg = pygame.image.load("sky.jpg")
+bg = pygame.transform.scale(bg, (screen.get_width(), screen.get_height()))
 
-# cube vars # TODO: Make the cube usefyl and movable with physics, and make it collide with the ball
-
+# cube vars # TODO: make the cube being able to move fom the force of the player
 cube = pygame.Rect(200, 850, 100, 100)
 cube_color = (0, 120, 255)
 
@@ -48,8 +55,6 @@ pause_status = font.render(f"PAUSED", True, WHITE)
 running = True
 
 
-
-
 def pause():
     while True:
         for event in pygame.event.get():
@@ -62,16 +67,11 @@ def pause():
                 running = False
                 return
 
-
-
-
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             EOOLTCP = True
             running = False
-
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_p:
                 pause_status = font.render(f"PAUSED", True, WHITE)
@@ -81,19 +81,18 @@ while running:
             if event.key == pygame.K_f:
                 if not slowmo:
                     slowmo = True
-                    FPS = 30
+                    FPS = 20
                 else:
                     slowmo = False
                     FPS = 120
-
-            #TODO: Add a fast motion abillity
+            if event.key == pygame.K_F11:
+                pygame.display.toggle_fullscreen() 
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
             if button_rect.collidepoint(event.pos):
                 button_pressed = not button_pressed
                 print(f"Button toggled to {'ON' if button_pressed else 'OFF'}")
-
             else:
                 print(f"Mouse clicked at: {mouse_x}, {mouse_y}")
                 ball.x = mouse_x
@@ -104,20 +103,18 @@ while running:
                 Y_VELOCITY = 0
                 if button_pressed:
                     X_VELOCITY = 0
-                    isMoving = False
-
-    # Draw time
-    screen.fill((0, 0, 0))
-    fps_text = font.render(f"FPS: {FPS}", True, WHITE)
+                    isMoving = False    
+    
+    actualFPS = int(clock.get_fps())
+    # Draw time 
+    screen.blit(bg, (0, 0))  
+    fps_text = font.render(f"FPS: {actualFPS}", True, WHITE)
     screen.blit(fps_text, (10, 10))
     pygame.draw.rect(screen, (0, 255, 0), ground)
     pygame.draw.ellipse(screen, (255, 0, 0), ball)
     pygame.draw.rect(screen, cube_color, cube)
 
-
-
     mouse_pos = pygame.mouse.get_pos()
-    mouse_click = pygame.mouse.get_pressed()[0]
     is_hovered = button_rect.collidepoint(mouse_pos)
 
     if button_pressed:
@@ -148,17 +145,33 @@ while running:
     else:
         isMoving = False
 
+    
+    ball.x += X_VELOCITY
+    if ball.colliderect(cube):
+        if X_VELOCITY > 0:  # Moving right
+            ball.right = cube.left
+        elif X_VELOCITY < 0:  # Moving left
+            ball.left = cube.right
+        X_VELOCITY = 0
+
+    
     if not touchingGround:
         Y_VELOCITY += GRAVITY / FPS 
-        ball_pos_y += Y_VELOCITY
-        ball.y = int(ball_pos_y)
-    else:
-        Y_VELOCITY = 0
-        ball_pos_y = ground.top - ball.height
-        ball.y = int(ball_pos_y)
+    ball_pos_y += Y_VELOCITY
+    ball.y = int(ball_pos_y)
 
-    ball.x += X_VELOCITY
-        
+    if ball.colliderect(cube):
+        if Y_VELOCITY > 0:  
+            ball.bottom = cube.top
+            ball_pos_y = float(ball.y)
+            Y_VELOCITY = 0
+            touchingGround = True  
+        elif Y_VELOCITY < 0:  
+            ball.top = cube.bottom
+            ball_pos_y = float(ball.y)
+            Y_VELOCITY = 0
+
+    # Ground & bounce logic
     if touchingGround and not isMoving:
         X_VELOCITY *= friction
         if abs(X_VELOCITY) < 0.25:
@@ -178,8 +191,6 @@ while running:
         ball.top = 0
         bounce_sound.play()
         Y_VELOCITY = -Y_VELOCITY * BOUNCE_DAMPENING
-
-
 
     if ball.colliderect(ground):
         ball.bottom = ground.top

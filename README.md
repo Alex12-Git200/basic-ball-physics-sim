@@ -7,3 +7,7 @@ P - Pause
 F - Slow motion
 Mouse click - teleport the ball there,and setting all velocities back to 0.
 On/Off Switch - when it is on, when the ball gets teleported where the mouse click is, it keeps the x velocity it had before. 
+
+
+
+Designed for 1080p resolution.
