@@ -1,6 +1,9 @@
 import pygame
 import time
 
+
+# TODO: Use the sky.jpg and add it as bg
+
 pygame.init()
 
 font = pygame.font.SysFont("Consolas", 30)  
@@ -27,6 +30,10 @@ touchingGround = False
 has_played_bounce_sound = False
 
 
+# cube vars # TODO: Make the cube usefyl and movable with physics, and make it collide with the ball
+
+cube = pygame.Rect(200, 850, 100, 100)
+cube_color = (0, 120, 255)
 
 # BUTTON VARIABLES & COLORS
 button_pressed = True
@@ -79,6 +86,8 @@ while running:
                     slowmo = False
                     FPS = 120
 
+            #TODO: Add a fast motion abillity
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
             if button_rect.collidepoint(event.pos):
@@ -97,11 +106,14 @@ while running:
                     X_VELOCITY = 0
                     isMoving = False
 
+    # Draw time
     screen.fill((0, 0, 0))
     fps_text = font.render(f"FPS: {FPS}", True, WHITE)
     screen.blit(fps_text, (10, 10))
     pygame.draw.rect(screen, (0, 255, 0), ground)
     pygame.draw.ellipse(screen, (255, 0, 0), ball)
+    pygame.draw.rect(screen, cube_color, cube)
+
 
 
     mouse_pos = pygame.mouse.get_pos()
@@ -121,7 +133,7 @@ while running:
 
     if slowmo:
         BOUNCE_DAMPENING = 0.8
-        GRAVITY = 15
+        GRAVITY = 10
     else:
         BOUNCE_DAMPENING = 0.6
         GRAVITY = 19
